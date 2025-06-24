@@ -1,0 +1,370 @@
+// Define the quiz questions as an array of objects
+const questions = [
+    {
+        question: "What is the capital of France?",
+        answers: [
+            { text: "Berlin", correct: false },
+            { text: "Madrid", correct: false },
+            { text: "Paris", correct: true },
+            { text: "Rome", correct: false }
+        ]
+    },
+    {
+        question: "Which planet is known as the Red Planet?",
+        answers: [
+            { text: "Earth", correct: false },
+            { text: "Mars", correct: true },
+            { text: "Jupiter", correct: false },
+            { text: "Venus", correct: false }
+        ]
+    },
+    {
+        question: "What is the largest ocean on Earth?",
+        answers: [
+            { text: "Atlantic Ocean", correct: false },
+            { text: "Indian Ocean", correct: false },
+            { text: "Arctic Ocean", correct: false },
+            { text: "Pacific Ocean", correct: true }
+        ]
+    },
+    {
+        question: "Who painted the Mona Lisa?",
+        answers: [
+            { text: "Vincent van Gogh", correct: false },
+            { text: "Pablo Picasso", correct: false },
+            { text: "Leonardo da Vinci", correct: true },
+            { text: "Claude Monet", correct: false }
+        ]
+    },
+    {
+        question: "What is the chemical symbol for water?",
+        answers: [
+            { text: "O2", correct: false },
+            { text: "H2O", correct: true },
+            { text: "CO2", correct: false },
+            { text: "NaCl", correct: false }
+        ]
+    },
+    {
+        question: "What is the largest land animal?",
+        answers: [
+            { text: "Giraffe", correct: false },
+            { text: "African Elephant", correct: true },
+            { text: "Rhinoceros", correct: false },
+            { text: "Hippopotamus", correct: false }
+        ]
+    },
+    {
+        question: "Which country is known as the Land of the Rising Sun?",
+        answers: [
+            { text: "China", correct: false },
+            { text: "South Korea", correct: false },
+            { text: "Japan", correct: true },
+            { text: "Thailand", correct: false }
+        ]
+    },
+    {
+        question: "What is the highest mountain in Africa?",
+        answers: [
+            { text: "Mount Everest", correct: false },
+            { text: "Mount Kilimanjaro", correct: true },
+            { text: "Mount Fuji", correct: false },
+            { text: "Mount McKinley", correct: false }
+        ]
+    },
+    {
+        question: "How many continents are there in the world?",
+        answers: [
+            { text: "5", correct: false },
+            { text: "6", correct: false },
+            { text: "7", correct: true },
+            { text: "8", correct: false }
+        ]
+    },
+    {
+        question: "What is the currency of Japan?",
+        answers: [
+            { text: "Yuan", correct: false },
+            { text: "Won", correct: false },
+            { text: "Yen", correct: true },
+            { text: "Ringgit", correct: false }
+        ]
+    }
+];
+
+// Get references to DOM elements
+const quizContent = document.querySelector(".quiz-content");
+const questionElement = document.getElementById("question");
+const answerButtonsElement = document.getElementById("answer-buttons");
+const feedbackElement = document.getElementById("feedback");
+const scoreElement = document.getElementById("score");
+const nextButton = document.getElementById("next-btn");
+const timerElement = document.getElementById("timer");
+const reviewSection = document.getElementById("review-section");
+
+// Game state variables
+let currentQuestionIndex = 0;
+let score = 0;
+let answerSelected = false; // Flag to prevent multiple selections per question
+let questionTimer; // Variable to hold the countdown timer interval
+const QUESTION_TIME_LIMIT = 10; // 10 seconds per question
+const LOW_TIME_THRESHOLD = 3; // Timer starts pulsing when 3 seconds or less remain
+let timeLeft; // Time remaining for the current question
+let totalTimeTaken = 0; // Accumulates actual time spent or max time per question
+let userAnswers = []; // Stores details of user's answers for review
+
+/**
+ * Starts or restarts the quiz game.
+ * Resets score, question index, time, and hides feedback/next button/review section.
+ */
+function startGame() {
+    currentQuestionIndex = 0;
+    score = 0;
+    totalTimeTaken = 0;
+    userAnswers = []; // Clear previous answers for a new game
+    answerSelected = false;
+    scoreElement.textContent = `Score: ${score}`;
+    nextButton.textContent = "Next Question"; // Reset button text
+    nextButton.style.display = "none";
+    feedbackElement.textContent = "";
+    quizContent.style.display = "block"; // Show quiz content
+    reviewSection.style.display = "none"; // Hide review section
+    displayQuestion();
+}
+
+/**
+ * Displays the current question and its answer options.
+ * Clears previous answers and creates new buttons.
+ * Starts the countdown timer for the current question.
+ */
+function displayQuestion() {
+    resetState(); // Clear previous question and answers
+    timeLeft = QUESTION_TIME_LIMIT; // Reset timer for new question
+    timerElement.textContent = timeLeft; // Display initial time
+    timerElement.classList.remove('low-time'); // Ensure low-time class is removed
+
+    // Clear any existing timer before starting a new one
+    clearInterval(questionTimer);
+    questionTimer = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+
+        // Add pulsing animation for low time
+        if (timeLeft <= LOW_TIME_THRESHOLD && timeLeft > 0) {
+            timerElement.classList.add('low-time');
+        } else {
+            timerElement.classList.remove('low-time');
+        }
+
+
+        if (timeLeft <= 0) {
+            handleTimeUp();
+        }
+    }, 1000); // Update every second
+
+    let currentQuestion = questions[currentQuestionIndex];
+    questionElement.textContent = currentQuestion.question; // Display question text
+
+    // Create buttons for each answer option
+    currentQuestion.answers.forEach(answer => {
+        const button = document.createElement("button");
+        button.textContent = answer.text;
+        button.classList.add("btn"); // Add base button styling
+        // Store whether this answer is correct as a data attribute
+        if (answer.correct) {
+            button.dataset.correct = answer.correct;
+        }
+        button.addEventListener("click", selectAnswer); // Attach click listener
+        answerButtonsElement.appendChild(button); // Add button to the container
+    });
+}
+
+/**
+ * Resets the state of the answer buttons and feedback for a new question.
+ * Hides the next button and clears previous feedback.
+ */
+function resetState() {
+    clearInterval(questionTimer); // Stop any running timer
+    nextButton.style.display = "none";
+    feedbackElement.textContent = "";
+    answerSelected = false; // Reset selection flag
+    // Ensure timer is reset to default style
+    timerElement.classList.remove('low-time');
+    while (answerButtonsElement.firstChild) {
+        answerButtonsElement.removeChild(answerButtonsElement.firstChild); // Remove all old answer buttons
+    }
+    reviewSection.style.display = "none"; // Ensure review section is hidden during quiz
+}
+
+/**
+ * Handles the scenario when the timer for a question runs out.
+ * Records an incorrect answer, provides feedback, and prepares for next question.
+ */
+function handleTimeUp() {
+    clearInterval(questionTimer); // Stop the timer
+    timerElement.textContent = "Time's Up!"; // Display "Time's Up!"
+    timerElement.classList.remove('low-time'); // Remove pulse animation
+    if (answerSelected) return; // If an answer was already selected, do nothing
+    answerSelected = true; // Mark as answered (by time up)
+
+    totalTimeTaken += QUESTION_TIME_LIMIT; // Add full time limit to total time
+
+    const currentQuestionData = questions[currentQuestionIndex];
+    const correctAnswerText = currentQuestionData.answers.find(ans => ans.correct).text;
+
+    feedbackElement.textContent = "Time's up! You missed this one.";
+    feedbackElement.style.color = "#f44336"; /* Red for time up feedback */
+
+    // Highlight the correct answer as the user didn't pick one
+    Array.from(answerButtonsElement.children).forEach(button => {
+        if (button.dataset.correct === "true") {
+            button.classList.add("correct");
+        }
+        button.removeEventListener("click", selectAnswer); // Disable further clicks
+        button.style.pointerEvents = 'none'; // Ensure all buttons are disabled
+    });
+
+    // Store the answer as incorrect due to time up
+    userAnswers.push({
+        question: currentQuestionData.question,
+        userAnswer: "No Answer (Time Up)",
+        correctAnswer: correctAnswerText,
+        isCorrect: false
+    });
+
+    nextButton.style.display = "block"; // Show the next button
+}
+
+
+/**
+ * Handles the user's selection of an answer.
+ * Checks if the answer is correct, updates score and feedback, and highlights buttons.
+ * Records the answer for review.
+ * @param {Event} e - The click event object.
+ */
+function selectAnswer(e) {
+    if (answerSelected) return; // Prevent multiple selections
+    answerSelected = true;
+    clearInterval(questionTimer); // Stop the countdown timer
+    timerElement.classList.remove('low-time'); // Stop pulsing on answer
+
+    // Calculate time taken for this question (difference between start and now, or whatever was left on timer)
+    // If the user answers, `timeLeft` will be the remaining time. So time taken is QUESTION_TIME_LIMIT - timeLeft.
+    const timeTakenForQuestion = QUESTION_TIME_LIMIT - timeLeft;
+    totalTimeTaken += timeTakenForQuestion; // Add time taken for this question to total
+
+    const selectedButton = e.target;
+    const isCorrect = selectedButton.dataset.correct === "true"; // Check if selected answer is correct
+    const currentQuestionData = questions[currentQuestionIndex];
+    const correctAnswerText = currentQuestionData.answers.find(ans => ans.correct).text;
+
+    if (isCorrect) {
+        score++; // Increment score if correct
+        feedbackElement.textContent = "Correct!";
+        feedbackElement.style.color = "#4CAF50"; /* Green for correct feedback */
+    } else {
+        feedbackElement.textContent = "Incorrect!";
+        feedbackElement.style.color = "#f44336"; /* Red for incorrect feedback */
+    }
+    scoreElement.textContent = `Score: ${score}`;
+    // Timer element now reflects the countdown, not total time during play
+    // timerElement.textContent = `Time: ${Math.floor(totalTimeTaken / 1000)}s`;
+
+    // Store the answer for review
+    userAnswers.push({
+        question: currentQuestionData.question,
+        userAnswer: selectedButton.textContent,
+        correctAnswer: correctAnswerText,
+        isCorrect: isCorrect
+    });
+
+    // Add correct/incorrect classes to buttons for visual feedback
+    Array.from(answerButtonsElement.children).forEach(button => {
+        if (button.dataset.correct === "true") {
+            button.classList.add("correct"); // Highlight correct answer
+        } else if (button === selectedButton && !isCorrect) {
+            button.classList.add("incorrect"); // Highlight user's incorrect answer
+        }
+        button.removeEventListener("click", selectAnswer); // Disable further clicks
+        button.style.pointerEvents = 'none'; // Ensure all buttons are disabled
+    });
+
+    nextButton.style.display = "block"; // Show the next/restart button
+}
+
+/**
+ * Advances to the next question or ends the game.
+ * If all questions are answered, shows final score and "Review Answers" option.
+ */
+function nextQuestion() {
+    clearInterval(questionTimer); // Ensure timer is stopped when moving to next question
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+        displayQuestion(); // Display next question
+    } else {
+        showScore(); // End of quiz, show final score
+    }
+}
+
+/**
+ * Displays the final score, total time, and changes the button to "Review Answers".
+ */
+function showScore() {
+    resetState(); // Clear questions and buttons
+    questionElement.textContent = `You scored ${score} out of ${questions.length} questions!`;
+    // Display total time taken at the end
+    feedbackElement.textContent = `Total Time Spent: ${Math.floor(totalTimeTaken / 1000)} seconds`;
+    feedbackElement.style.color = "#fff"; /* Reset feedback color */
+    scoreElement.textContent = ""; // Clear score display
+    timerElement.textContent = ""; // Clear timer display
+
+    nextButton.textContent = "Review Answers"; // Change button text to "Review Answers"
+    nextButton.style.display = "block"; // Show the button
+}
+
+/**
+ * Displays the answer review section with all questions and user's answers.
+ */
+function showAnswerReview() {
+    quizContent.style.display = "none"; // Hide quiz content
+    reviewSection.style.display = "block"; // Show review section
+    nextButton.textContent = "Play Again"; // Change button to "Play Again"
+
+    reviewSection.innerHTML = `<h2>Answer Review</h2>`; // Clear and add title
+
+    userAnswers.forEach((answerData, index) => {
+        const reviewItem = document.createElement("div");
+        reviewItem.classList.add("review-item");
+
+        const questionText = document.createElement("p");
+        questionText.classList.add("review-question");
+        questionText.textContent = `${index + 1}. ${answerData.question}`;
+        reviewItem.appendChild(questionText);
+
+        const yourAnswer = document.createElement("p");
+        yourAnswer.classList.add("review-answer");
+        yourAnswer.innerHTML = `Your Answer: <span class="${answerData.isCorrect ? 'your-answer-correct' : 'your-answer-incorrect'}">${answerData.userAnswer}</span>`;
+        reviewItem.appendChild(yourAnswer);
+
+        const correctAnswer = document.createElement("p");
+        correctAnswer.classList.add("review-answer");
+        correctAnswer.innerHTML = `Correct Answer: <span class="correct-answer-text">${answerData.correctAnswer}</span>`;
+        reviewItem.appendChild(correctAnswer);
+
+        reviewSection.appendChild(reviewItem);
+    });
+}
+
+// Event listener for the main action button (Next, Review, Play Again)
+nextButton.addEventListener("click", () => {
+    if (nextButton.textContent === "Next Question") {
+        nextQuestion();
+    } else if (nextButton.textContent === "Review Answers") {
+        showAnswerReview();
+    } else { // "Play Again"
+        startGame();
+    }
+});
+
+// Initialize the game when the window loads
+window.onload = startGame;
