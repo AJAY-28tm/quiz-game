@@ -1,0 +1,242 @@
+/* General Body Styling */
+body {
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #f068a0, #7b4397); /* Vibrant gradient background */
+    color: #fff;
+    overflow: auto; /* Allow scroll for review section */
+    padding: 20px; /* Padding for small screens */
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keyframe for timer pulse animation */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Game Container */
+.quiz-container {
+    background-color: rgba(255, 255, 255, 0.15); /* Slightly transparent white */
+    padding: 30px;
+    border-radius: 20px; /* More rounded corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Stronger, deeper shadow */
+    width: 100%;
+    max-width: 700px; /* Max width for larger screens to accommodate review */
+    text-align: center;
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.25); /* Subtle border */
+    overflow-y: auto; /* Allow scrolling within container if content overflows */
+    max-height: 90vh; /* Limit height of the container */
+    animation: fadeIn 0.8s ease-out; /* Fade in animation for container */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Question Styling */
+#question {
+    font-size: 1.8em; /* Larger font for questions */
+    margin-bottom: 30px;
+    font-weight: 700; /* Bolder font */
+    line-height: 1.4;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3); /* Sharper text shadow */
+    color: #fff;
+}
+
+/* Answer Buttons Container */
+#answer-buttons {
+    display: grid; /* Use grid for responsive layout */
+    grid-template-columns: 1fr; /* Single column by default */
+    gap: 15px; /* Spacing between buttons */
+    margin-bottom: 25px;
+}
+
+/* Answer Button Styling */
+.btn {
+    background: rgba(255, 255, 255, 0.95); /* More opaque white button background */
+    color: #7b4397; /* Text color matching secondary gradient color */
+    border: none;
+    padding: 15px 20px;
+    border-radius: 12px; /* Nicely rounded buttons */
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.2s ease-out; /* Faster, snappier transitions */
+    font-weight: 700; /* Bolder button text */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Improved shadow */
+    position: relative;
+    overflow: hidden; /* For ripple effect */
+}
+
+.btn:hover:not(.correct):not(.incorrect) {
+    background-color: #f068a0; /* Hover color matching primary gradient color */
+    color: #fff;
+    transform: translateY(-4px) scale(1.02); /* More pronounced lift and slight scale */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    outline: none; /* Remove default focus outline */
+}
+
+.btn:active:not(.correct):not(.incorrect) {
+    transform: translateY(0px) scale(0.98); /* Press down effect */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Correct Answer Styling */
+.btn.correct {
+    background-color: #4CAF50; /* Green for correct */
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 128, 0, 0.4); /* Stronger green shadow */
+    pointer-events: none; /* Disable interaction after selection */
+    animation: correctFade 0.5s ease-out forwards;
+}
+
+@keyframes correctFade {
+    from { transform: scale(1); opacity: 0.9; }
+    to { transform: scale(1.05); opacity: 1; }
+}
+
+/* Incorrect Answer Styling */
+.btn.incorrect {
+    background-color: #f44336; /* Red for incorrect */
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(128, 0, 0, 0.4); /* Stronger red shadow */
+    pointer-events: none; /* Disable interaction after selection */
+    animation: incorrectShake 0.4s ease-out forwards;
+}
+
+@keyframes incorrectShake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+/* Feedback and Score Styling */
+#feedback, #score {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    font-weight: 800; /* Extra bold */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Next/Restart Button */
+#next-btn {
+    background: linear-gradient(45deg, #f068a0, #7b4397); /* Gradient for next button */
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 800; /* Extra bold */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: none; /* Hidden by default */
+    margin-top: 20px;
+    letter-spacing: 0.5px;
+}
+
+#next-btn:hover {
+    opacity: 0.95;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+#next-btn:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Timer Styling */
+#timer {
+    font-size: 2em; /* Even larger timer font */
+    font-weight: 800; /* Extra bold */
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    color: #fff; /* White color for timer */
+    transition: color 0.3s ease-in-out; /* Smooth color change */
+}
+
+#timer.low-time {
+    color: #f44336; /* Red for low time */
+    animation: pulse 1s infinite alternate; /* Pulsing animation */
+}
+
+/* Answer Review Section */
+#review-section {
+    display: none; /* Hidden by default */
+    margin-top: 30px;
+    text-align: left;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1); /* Inner shadow */
+}
+
+#review-section h2 {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 25px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    color: #fff;
+}
+
+.review-item {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.review-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.review-question {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.review-answer {
+    font-size: 1.1em;
+    margin-left: 15px;
+    margin-bottom: 5px;
+    color: #eee;
+}
+
+.review-answer span {
+    font-weight: 700;
+}
+
+.correct-answer-text {
+    color: #90EE90; /* Light green for correct answer in review */
+}
+
+.your-answer-correct {
+    color: #4CAF50; /* Darker green if user's answer was correct */
+}
+
+.your-answer-incorrect {
+    color: #f44336; /* Red if user's answer was incorrect */
+    text-decoration: line-through; /* Strikethrough incorrect user answer */
+}
+
+/* Responsive Design */
+@media (min-width: 600px) {
+    #answer-buttons {
+        grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
+    }
+}
